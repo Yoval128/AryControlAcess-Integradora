@@ -1,0 +1,9 @@
+# Excluir node_modules en el proyecto API de Node.js
+/App-AryControlAccess/node_modules
+
+# Excluir node_modules en el proyecto React Native
+/services/node_modules
+
+# Excluir otros archivos generados que no necesites, por ejemplo:
+*.log
+*.env
