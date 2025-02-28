@@ -9,7 +9,7 @@ router.get("/", (req, res) => {
 });
 
 // 📌 Obtener todos los usuarios
-router.get("/list-employees", (req, res) => {
+router.get("/list-user", (req, res) => {
   connection.query("SELECT * FROM usuarios", (err, results) => {
     if (err) {
       console.error("Error al obtener los usuarios:", err);
@@ -21,11 +21,11 @@ router.get("/list-employees", (req, res) => {
 });
 
 // 📌 Obtener un usuario por ID
-router.get("/employees/:id", (req, res) => {
+router.get("/user/:id", (req, res) => {
   const { id } = req.params;
 
   connection.query(
-    "SELECT * FROM usuarios WHERE id_usuario = ?",
+    "SELECT * FROM usuarios WHERE ID_Usuario = ?",
     [id],
     (err, results) => {
       if (err) {
@@ -44,21 +44,18 @@ router.get("/employees/:id", (req, res) => {
 });
 
 // 📌 Registrar un nuevo usuario
-router.post("/register-employee", async (req, res) => {
+router.post("/register-user", async (req, res) => {
   const {
-    nombre_usuario,
-    rol_usuario,
-    departamento_usuario,
-    email_usuario,
-    contrasena_usuario,
+    nombre,
+    apellido,
+    cargo,
+    correo,
+    contrasena,
+    telefono,
+    id_tarjeta_rfid,
   } = req.body;
 
-  if (
-    !nombre_usuario ||
-    !rol_usuario ||
-    !email_usuario ||
-    !contrasena_usuario
-  ) {
+  if (!nombre || !apellido || !cargo || !correo || !contrasena) {
     return res
       .status(400)
       .json({ error: "Todos los campos requeridos deben ser proporcionados" });
@@ -67,16 +64,18 @@ router.post("/register-employee", async (req, res) => {
   try {
     // Encriptar la contraseña
     const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(contrasena_usuario, salt);
+    const hashedPassword = await bcrypt.hash(contrasena, salt);
 
     const query =
-      "INSERT INTO usuarios (nombre_usuario, rol_usuario, departamento_usuario, email_usuario, contrasena_usuario) VALUES (?, ?, ?, ?, ?)";
+      "INSERT INTO usuarios (Nombre, Apellido, Cargo, Correo, Contraseña, Telefono, ID_Tarjeta_RFID) VALUES (?, ?, ?, ?, ?, ?, ?)";
     const values = [
-      nombre_usuario,
-      rol_usuario,
-      departamento_usuario,
-      email_usuario,
+      nombre,
+      apellido,
+      cargo,
+      correo,
       hashedPassword,
+      telefono || null,  // Si no se proporciona, se almacena como NULL
+      id_tarjeta_rfid || null,  // Si no se proporciona, se almacena como NULL
     ];
 
     connection.query(query, values, (err, results) => {
@@ -97,45 +96,57 @@ router.post("/register-employee", async (req, res) => {
 });
 
 // 📌 Actualizar un usuario por ID
-router.put("/update-employee/:id", async (req, res) => {
+router.put("/update-user/:id", async (req, res) => {
   const { id } = req.params;
   const {
-    nombre_usuario,
-    rol_usuario,
-    departamento_usuario,
-    email_usuario,
-    contrasena_usuario,
+    nombre,
+    apellido,
+    cargo,
+    correo,
+    contrasena,
+    telefono,
+    id_tarjeta_rfid,
   } = req.body;
 
   // Preparamos un objeto de valores con los campos que realmente se envían
   let values = [];
   let updateFields = [];
 
-  if (nombre_usuario) {
-    updateFields.push("nombre_usuario = ?");
-    values.push(nombre_usuario);
+  if (nombre) {
+    updateFields.push("Nombre = ?");
+    values.push(nombre);
   }
 
-  if (rol_usuario) {
-    updateFields.push("rol_usuario = ?");
-    values.push(rol_usuario);
+  if (apellido) {
+    updateFields.push("Apellido = ?");
+    values.push(apellido);
   }
 
-  if (departamento_usuario) {
-    updateFields.push("departamento_usuario = ?");
-    values.push(departamento_usuario);
+  if (cargo) {
+    updateFields.push("Cargo = ?");
+    values.push(cargo);
   }
 
-  if (email_usuario) {
-    updateFields.push("email_usuario = ?");
-    values.push(email_usuario);
+  if (correo) {
+    updateFields.push("Correo = ?");
+    values.push(correo);
   }
 
-  if (contrasena_usuario) {
+  if (telefono) {
+    updateFields.push("Telefono = ?");
+    values.push(telefono);
+  }
+
+  if (id_tarjeta_rfid) {
+    updateFields.push("ID_Tarjeta_RFID = ?");
+    values.push(id_tarjeta_rfid);
+  }
+
+  if (contrasena) {
     // Encriptar la nueva contraseña si se ha enviado
     const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(contrasena_usuario, salt);
-    updateFields.push("contrasena_usuario = ?");
+    const hashedPassword = await bcrypt.hash(contrasena, salt);
+    updateFields.push("Contraseña = ?");
     values.push(hashedPassword);
   }
 
@@ -148,7 +159,7 @@ router.put("/update-employee/:id", async (req, res) => {
   values.push(id);
 
   // Crear la consulta SQL dinámica
-  const query = `UPDATE usuarios SET ${updateFields.join(", ")} WHERE id_usuario = ?`;
+  const query = `UPDATE usuarios SET ${updateFields.join(", ")} WHERE ID_Usuario = ?`;
 
   try {
     connection.query(query, values, (err, results) => {
@@ -169,13 +180,12 @@ router.put("/update-employee/:id", async (req, res) => {
   }
 });
 
-
 // 📌 Eliminar un usuario por ID
-router.delete("/delete-employees/:id", (req, res) => {
+router.delete("/delete-user/:id", (req, res) => {
   const { id } = req.params;
 
   connection.query(
-    "DELETE FROM usuarios WHERE id_usuario = ?",
+    "DELETE FROM usuarios WHERE ID_Usuario = ?",
     [id],
     (err, results) => {
       if (err) {

@@ -17,6 +17,8 @@ Para iniciar el proyecto y asegurarte de que todas las dependencias necesarias e
 * npm install bcryptjs jsonwebtoken -- Para la encriptación de contraseñas y jsonwebtoken
 * npm install express  -Manejo de Rutas: Te permite definir diferentes rutas para manejar diversas solicitudes HTTP como GET, POST, PUT, DELETE,
 * npm install mysql
+* npm install multer
+* npm install multer xlsx
 
 
 ## Estructura del proyecto

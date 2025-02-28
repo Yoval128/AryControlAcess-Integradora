@@ -1,0 +1,6 @@
+# Ignorar archivos dentro de la carpeta services
+services/*.log
+services/temp/
+services/node_modules
+services/package-lock.json
+services/package.json

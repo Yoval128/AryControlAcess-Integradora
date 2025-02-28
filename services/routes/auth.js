@@ -13,8 +13,14 @@ router.get('/', (req, res) => {
 router.post("/login", (req, res) => {
   const { email, password } = req.body;
 
+  // Validar que ambos campos están presentes
+  if (!email || !password) {
+    return res.status(400).json({ error: "Correo y contraseña son requeridos" });
+  }
+
+  // Consultar el usuario en la base de datos
   connection.query(
-      "SELECT * FROM usuarios WHERE email_usuario = ?",
+      "SELECT * FROM usuarios WHERE Correo = ?",
       [email],
       (err, results) => {
           if (err) {
@@ -28,7 +34,8 @@ router.post("/login", (req, res) => {
 
           const usuario = results[0];
 
-          bcrypt.compare(password, usuario.contrasena_usuario, (err, isMatch) => {
+          // Comparar las contraseñas
+          bcrypt.compare(password, usuario.Contraseña, (err, isMatch) => {
               if (err) {
                   console.error("Error al comparar contraseñas:", err);
                   return res.status(500).json({ error: "Error en el servidor" });
@@ -41,11 +48,11 @@ router.post("/login", (req, res) => {
               // Generar el token JWT
               const token = jwt.sign(
                   { 
-                      id: usuario.id_usuario, 
-                      email: usuario.email_usuario, 
-                      rol: usuario.rol_usuario 
+                      id: usuario.ID_Usuario, 
+                      email: usuario.Correo, 
+                      rol: usuario.Cargo 
                   },
-                  "SECRET_KEY", // Cambia esto por una clave secreta más segura
+                  process.env.JWT_SECRET_KEY, // Usar variable de entorno para la clave secreta
                   { expiresIn: "1h" } // El token expirará en 1 hora
               );
 
@@ -54,10 +61,13 @@ router.post("/login", (req, res) => {
                   message: "Login exitoso",
                   token,
                   usuario: {
-                      id: usuario.id_usuario,
-                      nombre: usuario.nombre_usuario,
-                      email: usuario.email_usuario,
-                      rol: usuario.rol_usuario,
+                      id: usuario.ID_Usuario,
+                      nombre: usuario.Nombre,
+                      apellido: usuario.Apellido,
+                      email: usuario.Correo,
+                      rol: usuario.Cargo,
+                      telefono: usuario.Telefono,
+                      id_tarjeta_rfid: usuario.ID_Tarjeta_RFID, 
                   },
               });
           });
